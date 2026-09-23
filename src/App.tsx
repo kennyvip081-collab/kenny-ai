@@ -362,11 +362,11 @@ function App() {
 
       console.log(
         'Sending request to:',
-        'http://localhost:3001/api/generate-image'
+        'https://kenny-ai-81co.onrender.com/api/generate-image'
       )
 
       const response = await fetch(
-        'http://localhost:3001/api/generate-image',
+        'https://kenny-ai-81co.onrender.com/api/generate-image',
         {
           method: 'POST',
           headers: {
@@ -568,7 +568,7 @@ function App() {
         }))
 
       const response = await fetch(
-        'http://localhost:3001/api/chat',
+        'https://kenny-ai-81co.onrender.com/api/chat',
         {
           method: 'POST',
           headers: {
