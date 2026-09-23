@@ -116,7 +116,7 @@ app.post(
             'qwen/qwen3.8-27b',
           messages,
           temperature: 0.7,
-          max_tokens: 2048,
+          max_tokens: 800,
           stream: true,
         })
 
