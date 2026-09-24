@@ -50,6 +50,9 @@ function App() {
   const inputRef =
     useRef<HTMLInputElement | null>(null)
 
+  const shouldAutoScrollRef =
+    useRef(true)
+
   const [darkMode, setDarkMode] =
     useState<boolean>(() => {
       const savedTheme =
@@ -119,40 +122,6 @@ function App() {
     )
   }, [darkMode])
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      scrollToBottom('smooth')
-    }, 50)
-
-    return () => {
-      window.clearTimeout(timer)
-    }
-  }, [
-    messages,
-    isThinking,
-    isGeneratingImage,
-  ])
-
-  useEffect(() => {
-    if (
-      messages.length > 0 &&
-      !isThinking &&
-      !isGeneratingImage
-    ) {
-      const timer = window.setTimeout(() => {
-        scrollToBottom('smooth')
-      }, 100)
-
-      return () => {
-        window.clearTimeout(timer)
-      }
-    }
-  }, [
-    messages.length,
-    isThinking,
-    isGeneratingImage,
-  ])
-
   const scrollToBottom = (
     behavior: ScrollBehavior = 'smooth'
   ) => {
@@ -166,6 +135,89 @@ function App() {
       behavior,
     })
   }
+
+  useEffect(() => {
+    const container =
+      messagesContainerRef.current
+
+    if (!container) return
+
+    const handleScroll = () => {
+      const distanceFromBottom =
+        container.scrollHeight -
+        container.scrollTop -
+        container.clientHeight
+
+      shouldAutoScrollRef.current =
+        distanceFromBottom < 120
+    }
+
+    container.addEventListener(
+      'scroll',
+      handleScroll,
+      { passive: true }
+    )
+
+    handleScroll()
+
+    return () => {
+      container.removeEventListener(
+        'scroll',
+        handleScroll
+      )
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!shouldAutoScrollRef.current) {
+      return
+    }
+
+    const container =
+      messagesContainerRef.current
+
+    if (!container) return
+
+    const frame =
+      window.requestAnimationFrame(() => {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'auto',
+        })
+      })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [
+    messages,
+    isThinking,
+    isGeneratingImage,
+  ])
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (
+        shouldAutoScrollRef.current
+      ) {
+        window.requestAnimationFrame(() => {
+          scrollToBottom('auto')
+        })
+      }
+    }
+
+    window.addEventListener(
+      'resize',
+      handleResize
+    )
+
+    return () => {
+      window.removeEventListener(
+        'resize',
+        handleResize
+      )
+    }
+  }, [])
 
   const toggleTheme = () => {
     setDarkMode((prev) => !prev)
@@ -187,6 +239,8 @@ function App() {
     setShowSettings(false)
     setShowMobileSidebar(false)
 
+    shouldAutoScrollRef.current = true
+
     window.setTimeout(() => {
       inputRef.current?.focus()
     }, 100)
@@ -207,6 +261,8 @@ function App() {
     setOpenMenuId(null)
     setShowSettings(false)
     setShowMobileSidebar(false)
+
+    shouldAutoScrollRef.current = true
 
     window.setTimeout(() => {
       scrollToBottom('auto')
@@ -230,6 +286,7 @@ function App() {
       setInput('')
       setAttachedImage(null)
       setActiveChatId(null)
+      shouldAutoScrollRef.current = true
     }
 
     setOpenMenuId(null)
@@ -287,6 +344,8 @@ function App() {
     setAttachedImage(null)
     setOpenMenuId(null)
     setShowMobileSidebar(false)
+
+    shouldAutoScrollRef.current = true
   }
 
   const saveMessagesToChat = (
@@ -352,9 +411,7 @@ function App() {
     try {
       setIsGeneratingImage(true)
 
-      window.setTimeout(() => {
-        scrollToBottom('smooth')
-      }, 100)
+      shouldAutoScrollRef.current = true
 
       console.log(
         'IMAGE GENERATION REQUEST DETECTED'
@@ -425,10 +482,6 @@ function App() {
           return updatedMessages
         }
       )
-
-      window.setTimeout(() => {
-        scrollToBottom('smooth')
-      }, 150)
     } catch (error) {
       console.error(
         'Image generation error:',
@@ -461,10 +514,11 @@ function App() {
       )
     } finally {
       setIsGeneratingImage(false)
+      shouldAutoScrollRef.current = true
 
       window.setTimeout(() => {
         scrollToBottom('smooth')
-      }, 150)
+      }, 100)
     }
   }
 
@@ -498,9 +552,7 @@ function App() {
     setInput('')
     setAttachedImage(null)
 
-    window.setTimeout(() => {
-      scrollToBottom('smooth')
-    }, 50)
+    shouldAutoScrollRef.current = true
 
     const currentChatId =
       createChatIfNeeded(
@@ -542,9 +594,7 @@ function App() {
 
     setIsThinking(true)
 
-    window.setTimeout(() => {
-      scrollToBottom('smooth')
-    }, 50)
+    shouldAutoScrollRef.current = true
 
     const aiMessageId =
       Date.now() + 1
@@ -634,10 +684,6 @@ function App() {
         messagesWithAi
       )
 
-      window.setTimeout(() => {
-        scrollToBottom('smooth')
-      }, 50)
-
       const reader =
         response.body.getReader()
 
@@ -696,12 +742,6 @@ function App() {
               : chat
           )
         )
-
-        window.requestAnimationFrame(
-          () => {
-            scrollToBottom('smooth')
-          }
-        )
       }
 
       const finalChunk =
@@ -750,6 +790,8 @@ function App() {
         )
       )
 
+      shouldAutoScrollRef.current = true
+
       window.setTimeout(() => {
         scrollToBottom('smooth')
       }, 100)
@@ -788,6 +830,8 @@ function App() {
             : chat
         )
       )
+
+      shouldAutoScrollRef.current = true
 
       window.setTimeout(() => {
         scrollToBottom('smooth')
